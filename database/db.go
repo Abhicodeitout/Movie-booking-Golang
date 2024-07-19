@@ -17,7 +17,7 @@ var (
 
 func ConnectDB() error {
 	// Replace with your MongoDB Atlas connection string
-	uri := "mongodb+srv://abhishekkushwaha11998:abhishekkushwaha11998@cluster0.shtcmvu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+	uri := "mongodb+srv://<username>:<password>@cluster0.shtcmvu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 
 	// Set client options
 	clientOptions := options.Client().ApplyURI(uri).
