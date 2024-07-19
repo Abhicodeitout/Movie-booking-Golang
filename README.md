@@ -94,8 +94,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - **Instructions**: Each section (Prerequisites, Installation, Configuration, Usage, Endpoints, Testing, Deployment, License) corresponds to a specific aspect of setting up, running, and managing your application.
 - **Environment Variables**: Instructions for setting up environment variables, including sensitive information like the MongoDB connection string.
 - **Endpoints**: Describes available API endpoints with HTTP methods and URL paths.
-- **Testing**: Provides commands to run tests for ensuring application functionality.
-- **Deployment**: Offers guidelines for deploying the application to production environments.
 - **License**: Mentions the licensing information for the project.
 
 
