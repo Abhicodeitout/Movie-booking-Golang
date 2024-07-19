@@ -98,7 +98,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - **Deployment**: Offers guidelines for deploying the application to production environments.
 - **License**: Mentions the licensing information for the project.
 
-This README file format provides a comprehensive guide for users (including yourself) to understand, install, configure, and utilize your movie booking system backend effectively. Adjust the content as per your specific project requirements and preferences before including it in your project repository.
+
 
 
 
