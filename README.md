@@ -1,8 +1,6 @@
 # Movie-booking-Golang
 Movie_booking_system_backend
 
-# Movie Booking System
-
 This is a backend application built using Go with the Gin framework and MongoDB Atlas as the database. It provides APIs for managing movies, showtimes, and booking seats.
 
 ## Table of Contents
@@ -54,7 +52,8 @@ Before running the application, ensure you have the following installed:
 
   ```bash
   MONGO_URI=mongodb+srv://<username>:<password>@<clustername>.mongodb.net/<dbname>?retryWrites=true&w=majority
-Replace <username>, <password>, <clustername>, and <dbname> with your actual MongoDB Atlas credentials and cluster details.
+
+Replace username, password, clustername, and <dbname> with your actual MongoDB Atlas credentials and cluster details.
 
 ## Usage
 
