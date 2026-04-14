@@ -1,0 +1,36 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: movie-booking-api
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      PORT: 8080
+      GIN_MODE: release
+      MONGO_URI: mongodb://mongo:27017
+      MONGO_DATABASE: movie_booking
+      MONGO_COLLECTION: movies
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:7
+    container_name: movie-booking-mongo
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    ports:
+      - "27017:27017"
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+
+volumes:
+  mongo_data:

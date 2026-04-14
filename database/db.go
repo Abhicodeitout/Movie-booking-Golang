@@ -2,8 +2,10 @@ package db
 
 import (
 	"context"
-	"log"
+	"fmt"
 	"time"
+
+	models "movie_booking_system/model"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -15,40 +17,61 @@ var (
 	collection *mongo.Collection
 )
 
-func ConnectDB() error {
-	// Replace with your MongoDB Atlas connection string
-	uri := "mongodb+srv://<username>:<password>@cluster0.shtcmvu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
-
-	// Set client options
-	clientOptions := options.Client().ApplyURI(uri).
+func ConnectDB(ctx context.Context, config models.Config) error {
+	clientOptions := options.Client().ApplyURI(config.MongoURI).
 		SetConnectTimeout(10 * time.Second).
 		SetServerSelectionTimeout(30 * time.Second)
 
-	// Connect to MongoDB
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	connectCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
 	var err error
-	client, err = mongo.Connect(ctx, clientOptions)
+	client, err = mongo.Connect(connectCtx, clientOptions)
 	if err != nil {
-		log.Fatal(err)
-		return err
+		return fmt.Errorf("connect mongo client: %w", err)
 	}
 
-	// Ping the MongoDB server
-	err = client.Ping(ctx, nil)
+	pingCtx, pingCancel := context.WithTimeout(ctx, 5*time.Second)
+	defer pingCancel()
+
+	err = client.Ping(pingCtx, nil)
 	if err != nil {
-		log.Fatal(err)
-		return err
+		return fmt.Errorf("ping mongo database: %w", err)
 	}
 
-	// Set database and collection
-	database = client.Database("movie_booking")
-	collection = database.Collection("movies")
+	database = client.Database(config.MongoDatabase)
+	collection = database.Collection(config.MongoCollection)
 
 	return nil
 }
 
 func GetCollection() *mongo.Collection {
 	return collection
+}
+
+func Ping(ctx context.Context) error {
+	if client == nil {
+		return fmt.Errorf("database client is not initialized")
+	}
+
+	pingCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	if err := client.Ping(pingCtx, nil); err != nil {
+		return fmt.Errorf("ping mongo database: %w", err)
+	}
+
+	return nil
+}
+
+func Close(ctx context.Context) error {
+	if client == nil {
+		return nil
+	}
+
+	if err := client.Disconnect(ctx); err != nil {
+		return fmt.Errorf("disconnect mongo client: %w", err)
+	}
+
+	return nil
 }

@@ -1,100 +1,192 @@
-# Movie-booking-Golang
-Movie_booking_system_backend
+# Movie Booking Golang API
 
-This is a backend application built using Go with the Gin framework and MongoDB Atlas as the database. It provides APIs for managing movies, showtimes, and booking seats.
+Movie Booking Golang API is a small but production-shaped REST service for managing movies, showtimes, and seat bookings with Go, Gin, and MongoDB.
 
-## Table of Contents
+## Highlights
 
-1. [Prerequisites](#prerequisites)
-2. [Installation](#installation)
-3. [Configuration](#configuration)
-4. [Usage](#usage)
-5. [Endpoints](#endpoints)
-6. [License](#license)
+- Clean REST endpoints for movie CRUD and seat booking
+- MongoDB-backed persistence with configurable database and collection names
+- Graceful shutdown and explicit database health checks
+- Request validation for payload shape and duplicate seat numbers
+- Docker, Docker Compose, Make targets, and GitHub Actions CI
+- Unit tests for configuration and core handler behavior
 
-## Prerequisites
+## Stack
 
-Before running the application, ensure you have the following installed:
+- Go 1.23+
+- Gin
+- MongoDB
+- Docker and Docker Compose for local orchestration
+- GitHub Actions for CI
 
-- Go programming language (version 1.15 or higher)
-- MongoDB Atlas account and a configured cluster
-- Git (optional, for cloning the repository)
+## Project Structure
 
-## Installation
-
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/your-username/movie-booking-system.git
-
-2. Navigate to the project directory
-
-   ```bash
-   cd movie-booking-system
-
-3. Install Dependencies
-
-   ```bash
-   go mod tidy
+```text
+.
+├── .github/workflows/ci.yml
+├── database/
+├── handler/
+├── model/
+├── .env.example
+├── .gitignore
+├── Dockerfile
+├── Makefile
+├── docker-compose.yml
+├── go.mod
+├── main.go
+└── README.md
+```
 
 ## Configuration
 
-1. Mongodb atlas setup
+Copy the sample file for local development:
 
-- Create a MongoDB Atlas cluster.
-- Whitelist your IP address in MongoDB Atlas to allow access.
-- Obtain your MongoDB connection string.
-- Environment Variables:
+```bash
+cp .env.example .env
+```
 
-2. Create a .env file in the root directory of your project.
+Available environment variables:
 
-- Add the MongoDB connection string and any other sensitive information:
+```bash
+PORT=8080
+GIN_MODE=release
+MONGO_URI=mongodb://localhost:27017
+MONGO_DATABASE=movie_booking
+MONGO_COLLECTION=movies
+```
 
-  ```bash
-  MONGO_URI=mongodb+srv://<username>:<password>@<clustername>.mongodb.net/<dbname>?retryWrites=true&w=majority
+`MONGO_URI` is required. The application loads `.env` automatically when present.
 
-Replace username, password, clustername, and <dbname> with your actual MongoDB Atlas credentials and cluster details.
+## Run Locally
 
-## Usage
+### Option 1: Go + local MongoDB
 
-1. Run the application
+```bash
+go mod tidy
+go run ./...
+```
 
-  ```bash
- go run main.go
+### Option 2: Docker Compose
 
+```bash
+docker compose up --build
+```
 
-2. The server will start at http://localhost:8080 by default.
-  ```
+The API is available at `http://localhost:8080`.
 
-## Endpoints
+## Make Commands
 
-- GET /movies: Retrieve all movies.
+```bash
+make build
+make run
+make test
+make fmt
+make up
+make down
+make logs
+```
 
-- GET /movies/:id: Retrieve a specific movie by ID.
+## API Overview
 
-- POST /movies: Add a new movie.
+| Method | Route | Description |
+| --- | --- | --- |
+| GET | `/` | Service metadata |
+| GET | `/healthz` | Database health check |
+| GET | `/movies` | List all movies |
+| GET | `/movies/:id` | Get one movie |
+| POST | `/movies` | Create a movie |
+| PUT | `/movies/:id` | Update a movie |
+| DELETE | `/movies/:id` | Delete a movie |
+| POST | `/movies/:id/book` | Book a seat |
 
-- PUT /movies/:id: Update a movie by ID.
+## Sample Payloads
 
-- DELETE /movies/:id: Delete a movie by ID.
+### Create or Update Movie
 
-- POST /movies/:id/book: Book a seat for a specific movie.
+```json
+{
+   "title": "Inception",
+   "director": "Christopher Nolan",
+   "year": 2010,
+   "description": "A science fiction heist thriller.",
+   "showtimes": [
+      {
+         "time": "2026-04-14T19:00:00Z",
+         "seats": [
+            { "number": 1, "booked": false, "reserved": false },
+            { "number": 2, "booked": false, "reserved": false }
+         ]
+      }
+   ]
+}
+```
 
-Replace :id with the actual ID of the movie.
+### Book Seat
 
+```json
+{
+   "showtime_index": 0,
+   "seat_number": 2
+}
+```
 
-### License
+## Example Requests
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+### Health Check
 
+```bash
+curl http://localhost:8080/healthz
+```
 
-### Explanation:
+### Create Movie
 
-- **Markdown Formatting**: Uses Markdown syntax to structure the document with headers, lists, code blocks, and links.
-- **Instructions**: Each section (Prerequisites, Installation, Configuration, Usage, Endpoints, Testing, Deployment, License) corresponds to a specific aspect of setting up, running, and managing your application.
-- **Environment Variables**: Instructions for setting up environment variables, including sensitive information like the MongoDB connection string.
-- **Endpoints**: Describes available API endpoints with HTTP methods and URL paths.
-- **License**: Mentions the licensing information for the project.
+```bash
+curl -X POST http://localhost:8080/movies \
+   -H 'Content-Type: application/json' \
+   -d '{
+      "title":"Inception",
+      "director":"Christopher Nolan",
+      "year":2010,
+      "description":"A science fiction heist thriller.",
+      "showtimes":[
+         {
+            "time":"2026-04-14T19:00:00Z",
+            "seats":[
+               {"number":1,"booked":false,"reserved":false},
+               {"number":2,"booked":false,"reserved":false}
+            ]
+         }
+      ]
+   }'
+```
+
+### Book Seat
+
+```bash
+curl -X POST http://localhost:8080/movies/<movie-id>/book \
+   -H 'Content-Type: application/json' \
+   -d '{"showtime_index":0,"seat_number":2}'
+```
+
+## Validation Notes
+
+- Movie payloads require title, director, year, description, and at least one showtime.
+- Each showtime requires at least one seat.
+- Duplicate seat numbers within the same showtime are rejected.
+- The booking endpoint rejects already booked seats and invalid seat numbers.
+
+## Quality Checks
+
+```bash
+go test ./...
+go build ./...
+```
+
+CI runs these checks automatically on pushes and pull requests.
+
+## License
+
+This project is licensed under the MIT License. See the LICENSE file for details.
 
 
 
